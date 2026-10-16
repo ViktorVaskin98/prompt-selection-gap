@@ -1,0 +1,11 @@
+{
+  "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+  "dtype": "float16",
+  "n_problems": 800,
+  "pool_seed": 1,
+  "exemplar_seed": 7,
+  "max_new_tokens": 512,
+  "batch_size": 128,
+  "candidate_start": 24,
+  "candidate_end": 48
+}
