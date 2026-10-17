@@ -1,32 +1,32 @@
 # PLAN — prompt-selection-gap
 
-Пилот под тему 13 AIST («Автоматическая разработка и эволюция агентных систем»).
+A pilot on selection bias in automated prompt and agent search.
 
-## Вопрос
-Автоматический поиск промптов (и шире — конфигураций агентов) выбирает лучшего кандидата по
-качеству на фиксированном поисковом наборе задач. Насколько завышена оценка выбранного кандидата
-(«цена отбора») в зависимости от числа перебранных кандидатов N и размера поискового набора n,
-и какой протокол отбора снижает её при том же бюджете вычислений?
+## Question
+Automated prompt search (and, more broadly, search over agent configurations) picks the candidate
+that scored best on a fixed search set of tasks. How inflated is the picked candidate's score — the
+"cost of selection" — as a function of the number of candidates searched *N* and the search-set size
+*n*, and which selection protocol reduces it at the same compute budget?
 
-## Сетап
-- Qwen2.5-0.5B-Instruct, greedy, до 512 новых токенов, Kaggle T4.
-- Пул: 800 задач GSM8K test (seed 1). Каждый кандидат прогоняется на всём пуле один раз →
-  матрица корректности 48 × 800. Все эксперименты с отбором — офлайн-симуляции на ней
-  (1000 случайных разбиений пула на поисковый набор и отложенный).
-- Кандидаты: 48 промптов = 4 системных промпта × 3 инструкции рассуждения × 2 формата ответа ×
-  {0, 2} примера из GSM8K train.
-- Протоколы при равном бюджете `N · n` оценок:
-  - **naive** — argmax на поисковом наборе из n задач;
-  - **two-stage** — все N кандидатов на n/2 задачах → топ-3 → дооценка на свежих задачах
-    оставшимся бюджетом → выбор и отчёт по второй стадии.
-- Метрики: optimism = acc_search(выбранного) − acc_holdout(выбранного);
-  regret = лучший acc_holdout среди N − acc_holdout(выбранного).
+## Setup
+- Qwen2.5-0.5B-Instruct, greedy, up to 512 new tokens, Kaggle T4.
+- Pool: 800 GSM8K test problems (seed 1). Every candidate is run once on the whole pool → a
+  48 × 800 correctness matrix. All selection experiments are offline simulations on it (1000 random
+  splits of the pool into a search set and a held-out set).
+- Candidates: 48 prompts = 4 system prompts × 3 reasoning instructions × 2 answer formats ×
+  {0, 2} worked examples from GSM8K train.
+- Protocols at an equal budget of `N · n` evaluations:
+  - **naive** — argmax on a search set of *n* problems;
+  - **two-stage** — all *N* candidates on *n*/2 problems → top 3 → re-evaluation on fresh problems
+    with the remaining budget → pick and report from the second stage.
+- Metrics: optimism = acc_search(picked) − acc_holdout(picked);
+  regret = best acc_holdout among the *N* − acc_holdout(picked).
 
-## Итог (16.10, 18:45)
-1 — подтвердилось (10.0 п.п.); 2 — частично (только при N ≥ 8); 3 — подтвердилось (24.6 п.п.).
-Подробности в README.
+## Outcome (2026-10-16, 18:45 MSK)
+1 — confirmed (10.0 pp); 2 — partly (only for N ≥ 8); 3 — confirmed (24.6 pp). Details in the
+[README](README.md).
 
-## Предсказания (зафиксированы 16.10, до получения данных)
-1. Optimism растёт с N и падает с n; при n = 50 и N = 48 он больше 3 п.п.
-2. Two-stage при равном бюджете даёт меньший optimism, чем naive, при всех n ≥ 50.
-3. Разброс истинной точности между 48 промптами — не меньше 5 п.п.: отбор вообще имеет смысл.
+## Predictions (fixed on 2026-10-16, before any data)
+1. Optimism grows with *N* and falls with *n*; at n = 50 and N = 48 it exceeds 3 pp.
+2. At an equal budget, two-stage has lower optimism than naive for every n ≥ 50.
+3. The spread of true accuracy across the 48 prompts is at least 5 pp, so selection matters at all.
